@@ -131,6 +131,7 @@ try:
         if merge_camera_stream:
             merge =  ((dxtype==TYPE_CAMERA) and (dytype == TYPE_STREAM)) or ((dxtype==TYPE_STREAM) and (dytype == TYPE_CAMERA))
             if merge:
+                print "Merging dispatcher and camera streams"
                 _merger = StreamMerger("stream", _stream, cam_server.stream)
                 _merger.monitored=True
                 _merger.start()
