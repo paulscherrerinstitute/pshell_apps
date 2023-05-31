@@ -16,20 +16,13 @@ TYPE_CAMERA= 2
 INVOKE_PLOT_UPDATES = True
 
 if get_exec_pars().source == CommandSource.ui:
-    dx = "SINEG01-DICT215:B1_CHARGE"
-    #dx=get_beam_ok_channel(1)
-    #dx = "SLG-LCAM-C042 x_rms"    
-    #dxtype = TYPE_CHANNEL
-    dxtype = TYPE_STREAM
-    #dxtype = TYPE_CAMERA
+    #dx = "SINEG01-DICT215:B1_CHARGE"            ; dxtype = TYPE_CHANNEL
+    dx=get_beam_ok_channel(1)                   ; dxtype = TYPE_STREAM
+    #dx = "SLG-LCAM-C042 x_rms"                  ; dxtype = TYPE_CAMERA   
     
-    #dy = "SINDI01-RLLE-STA:SLAVE1-DLTIMER"
-    #dy = "SLG-LCAM-C042 y_rms"    
-    #dytype = TYPE_CHANNEL    
-    dy = "SATES31-CAMS187-RIXS1_sp1 intensity"
-    dytype = TYPE_CAMERA
-    #dy=get_beam_ok_channel(2)
-    #dytype = TYPE_STREAM
+    #dy = "SINDI01-RLLE-STA:SLAVE1-DLTIMER"      ; dytype = TYPE_CHANNEL    
+    dy = "SATES31-CAMS187-RIXS1_sp1 intensity"  ; dytype = TYPE_CAMERA
+    #dy=get_beam_ok_channel(2)                   ; dytype = TYPE_STREAM
     
     interval = 0.01
     window = 40
