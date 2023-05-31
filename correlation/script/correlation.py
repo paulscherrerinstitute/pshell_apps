@@ -4,7 +4,10 @@ from mathutils import fit_polynomial, PolynomialFunction
 from plotutils import plot_line, plot_function
 from ch.psi.pshell.swing.Shell import getColorStdout
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation as PearsonsCorrelation
-import ch.psi.pshell.bs.StreamMerger as StreamMerger
+try:
+    import ch.psi.pshell.bs.StreamMerger as StreamMerger
+except:
+    merge_camera_stream = False
 
 TYPE_CHANNEL = 0
 TYPE_STREAM = 1
@@ -36,10 +39,6 @@ if get_exec_pars().source == CommandSource.ui:
     merge_camera_stream = True
 print dx, dxtype
 print dy, dytype
-
-#Backward compatible with old panel
-if not "merge_camera_stream" in globals():
-    merge_camera_stream = False
 
 corr = None
 pars_lin = None 
