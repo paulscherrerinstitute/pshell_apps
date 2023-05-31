@@ -1,0 +1,31 @@
+#!/bin/bash
+
+MY_PATH=$(dirname "$0")
+export PKG=${MY_PATH}/..
+
+#Check if running as e-account
+for i in "$@"
+do
+case $i in
+
+    -pkg=*)
+        export PKG="${i#*=}"
+    ;;
+
+    *)    # unknown option            
+    ;;
+esac
+done
+
+/opt/gfa/pshell/pshell \
+	-version=default \
+	-py3 \
+	-m=${PKG} \
+	-z \
+	-nbcf=true \
+	-laf=dark \
+	-d \
+	-pini=true \
+        -clog=WARNING \
+        -sbar \
+        $@ 

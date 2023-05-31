@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+/opt/gfa/pshell/pshell \
+        -z -sbar -clog=INFO -d -q -n \
+	-p=/opt/gfa/pshell/apps/persplot/PersistencePlot.java \
+	-laf=dark \
+	-last \
+        ${1+"$@"}
+
+~                   

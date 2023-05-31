@@ -1,0 +1,14 @@
+#!/bin/bash
+
+/opt/gfa/pshell/pshell \
+     -l \
+     -r \
+     -laf=dark \
+     -home=/sls/controls/config/pshell/pshell_sls \
+     -outp=~/pshell/home \
+     -scpt=~/pshell/home/script \
+     -strh=~/pshell/home/stripchart \
+     -py3 \
+     -version=default \
+     $@
+

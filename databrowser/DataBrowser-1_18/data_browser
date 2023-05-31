@@ -1,0 +1,6 @@
+#!/bin/bash
+
+MY_PATH="`dirname \"$0\"`"              
+MY_PATH="`( cd \"$MY_PATH\" && pwd )`" 
+echo "$MY_PATH"
+/opt/gfa/java/openjdk-11_28/bin/java -jar $MY_PATH/pshell-1.18.0-fat.jar -o -z -fda_browser -laf=dark -data=. -hide=tabStatus -dfmt=fda -dlay=fda -$@

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+MY_PATH=$(dirname "$0")
+export PKG=${MY_PATH}/..
+
+#Check if running as e-account
+for i in "$@"
+do
+case $i in
+
+    -pkg=*)
+        export PKG="${i#*=}"
+    ;;
+
+    *)    # unknown option            
+    ;;
+esac
+done
+
+
+/opt/gfa/pshell/pshell \
+        -version=default \
+	-z \
+	-py3 \
+	-nbcf=true \
+	-laf=dark \
+	-pini=true \
+	-plgp=${PKG}/plugins \
+	-scpt=${PKG}/script \
+	-devp=${PKG}/devices \
+        -p=Correlation.java \
+        $@ 
