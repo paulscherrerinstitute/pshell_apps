@@ -1,0 +1,6 @@
+#!/bin/bash
+
+MY_PATH="`dirname \"$0\"`"              
+MY_PATH="`( cd \"$MY_PATH\" && pwd )`" 
+echo "$MY_PATH"
+java -Xdock:name="PShell" -Xdock:icon=$MY_PATH/pshell.png -jar $MY_PATH/pshell-1.19.0-fat.jar -o -z -fda_browser -laf=dark -data=. -hide=tabStatus -dfmt=fda -dlay=fda $@

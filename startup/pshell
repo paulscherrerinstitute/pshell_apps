@@ -1,0 +1,209 @@
+#!/bin/bash
+
+
+#Check if running as e-account
+for i in "$@"
+do
+case $i in
+    -ea|-ea=*)	
+    export ea="${i#*=}"	
+    export pars=""
+    export epars="-data=~/Data1" 
+    echo "Running as e-account"
+    
+    #Replace ea into eax
+    for j in "$@"
+    do
+    case $j in
+        -ea|-ea=*)	
+        pars+='-eax '
+        ;;    
+        *)    # unknown option            
+        pars+=$j 
+        pars+=' '
+        ;;
+    esac
+    done
+
+    if [[ $ea == "-ea" ]] ; then
+        export cmd='read -p "Enter E-Account: " ea ; echo Authenticating user ${ea}...; su ${ea} -c'   
+    else
+        export cmd='echo Authenticating user ${ea}...; su ${ea} -c'   
+    fi
+    
+    if [ -z "$DESKTOP_SESSION" ]
+    then
+      echo "SSH session"
+      cookie=$(xauth list $DISPLAY)
+      export cmd="${cmd} 'xauth add $cookie; ${BASH_SOURCE} ${pars} ${epars}; sleep 2'"
+    else
+      echo "Desktop session"
+      export cmd="${cmd} '${BASH_SOURCE} ${pars} ${epars}; sleep 2'"
+    fi
+    
+    #echo $cmd
+    xterm -T "Run PShell as E-Account" -fa monaco -fs 14 -bg black -fg green -geometry 80x15+400+100 -e "${cmd}"
+    exit
+    ;;    
+
+esac
+done
+
+
+
+#Parse JVM arguments, Pshell version and JEP option
+export PSHELL_VER=default
+export JVM_ARGS=
+export JVM_UCP=
+#export JAVA_VER=/opt/gfa/java/openjdk-1.8.0_40
+#export JAVA_VER=/opt/gfa/java/jdk1.8.0_72
+export JAVA_VER=/opt/gfa/java/openjdk-12_32
+#export JEP=
+
+for i in "$@"
+do
+case $i in
+    -jvmarg=*)
+	JVM_ARGS="${i#*=}"
+	#echo 'JVM args:' ${JVM_ARGS}
+    	shift 
+    ;;
+
+    -ucp=*)
+        UCP="${i#*=}"
+        #echo 'UCP:' ${UCP}
+        shift
+    ;;
+
+    -version=*|--version=*)
+	export PSHELL_VER="${i#*=}"
+	echo "Using  version " ${PSHELL_VER}
+	#shift
+    ;;
+
+    -test)	
+	export PSHELL_VER=testing
+	echo "Using testing version"
+    	#shift 
+    ;;
+
+    -last)
+	export PSHELL_VER=latest
+	echo "Using latest version"
+       #shift 
+    ;;
+
+    -javaver=*|--javaver=*)
+	export JAVA_VER="${i#*=}"
+	echo "Using  java version " ${JAVA_VER}
+	#shift
+    ;;
+
+#    -py2)
+#	JEP=2
+#	echo "Setting Python 2 for JEP"
+#        shift 
+#    ;;
+
+#    -py3)
+#	JEP=3
+#	echo "Setting Python 3 for JEP"
+#        shift 
+#    ;;
+
+    *)    # unknown option            
+    ;;
+esac
+done
+
+#echo $@
+
+#Parse Pshell version
+#if [[ $@ == **-test** ]] ; then
+#	echo "Using testing version"
+#	export PSHELL_VER=testing
+#else
+# if [[ $@ == **-last** ]] ; then
+#	echo "Using latest version"
+#	export PSHELL_VER=latest
+# fi
+#fi
+
+
+export JVM_EARGS=
+
+#If starting with -cp the options in PShell manifest fle are not executed: must be don by command line
+if [[ $JAVA_VER != *"1.8.0"* ]]; then
+    #echo 'Java > 1.8'
+    export JVM_EARGS="--add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/javax.swing.text.html=ALL-UNNAMED --add-opens java.desktop/sun.swing=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED"
+fi
+
+#Standard startup
+if [[ $@ != **-py** ]] ; then
+#if [[ $JEP == "" ]] ; then
+if [[ $UCP == "" ]] ; then
+	#echo 'Standard launch'
+	${JAVA_VER}/bin/java ${JVM_EARGS} ${JVM_ARGS} -jar /opt/gfa/pshell/${PSHELL_VER} ${1+"$@"}
+	exit  
+fi
+fi
+
+
+if [[ $@ == **-py** ]] ; then
+#Using JEP 
+#First clean path and vars
+#unset JCPDS_PATH
+#unset XRF_PEAK_LIBRARY 
+unset PYTHONPATH
+CLEAN_PATH=""	
+for p in $(echo $PATH | sed 's/:/ /g') ; do
+    if [[ $p =~ ^.*/opt/gfa/python.*$ ]] ; then
+        echo 'Remove from path' $p
+    else
+        if [ "$CLEAN_PATH" == "" ] ; then
+            CLEAN_PATH=$p
+        else
+	    CLEAN_PATH=$CLEAN_PATH:$p
+        fi
+    fi
+done
+
+
+if [[ $@ == **-py35** ]] ; then
+        #Python 3       
+        echo "Setting Python 3.5 for JEP"
+
+        #Python 3.5
+        export PYTHONHOME=/opt/gfa/python-3.5/latest
+        export JEP_JAR=/opt/gfa/pshell/python/jep/3.9.1/jep-3.9.1.jar  
+        export LD_LIBRARY_PATH=/opt/gfa/pshell/python/jep/3.9.1
+        export LD_PRELOAD=${PYTHONHOME}/lib/libpython3.5m.so   
+else
+
+if [[ $@ == **-py3** ]] ; then
+        #Python 3       
+        echo "Setting Python 3.8 for JEP"
+
+        #Python 3.8
+        export PYTHONHOME=/opt/gfa/python-3.8/latest
+        export JEP_JAR=${PYTHONHOME}/lib/python3.8/site-packages/jep/jep-3.9.1.jar
+        export LD_LIBRARY_PATH=${PYTHONHOME}/lib/python3.8/site-packages/jep
+        export LD_PRELOAD=${PYTHONHOME}/lib/libpython3.8.so
+else 
+        #Python 2
+        echo "Setting Python 2 for JEP"
+        export PYTHONHOME=/exchange/tmp/pshell/python/anaconda2
+        export LD_LIBRARY_PATH=${PYTHONHOME}/lib/python2.7/site-packages/jep
+        export JEP_JAR=${PYTHONHOME}/lib/python2.7/site-packages/jep/jep-3.5.3.jar
+fi
+fi
+fi
+
+
+if [[ $UCP != "" ]] ; then
+	UCP=${UCP}:
+fi
+
+export PATH=${PYTHONHOME}/bin:$CLEAN_PATH
+${JAVA_VER}/bin/java  ${JVM_EARGS} ${JVM_ARGS} -cp ${UCP}/opt/gfa/pshell/${PSHELL_VER}:${JEP_JAR} ch.psi.pshell.ui.App ${1+"$@"}
+

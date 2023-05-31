@@ -1,0 +1,62 @@
+#!/bin/bash
+
+
+
+#Parse JVM arguments, Pshell version and JEP option
+export PSHELL_VER=default
+export JVM_ARGS=
+#export JAVA_VER=/opt/gfa/java/openjdk-1.8.0_40
+#export JAVA_VER=/opt/gfa/java/jdk1.8.0_72
+export JAVA_VER=/opt/gfa/java/openjdk-12_32
+#export JEP=
+
+for i in "$@"
+do
+case $i in
+    -jvmarg=*)
+	JVM_ARGS="${i#*=}"
+	#echo 'JVM args:' ${JVM_ARGS}
+    	shift 
+    ;;
+
+    -version=*|--version=*)
+	export PSHELL_VER="${i#*=}"
+	echo "Using  version " ${PSHELL_VER}
+	#shift
+    ;;
+
+    -test)	
+	export PSHELL_VER=testing
+	echo "Using testing version"
+    	#shift 
+    ;;
+
+    -last)
+	export PSHELL_VER=latest
+	echo "Using latest version"
+       #shift 
+    ;;
+
+    -javaver=*|--javaver=*)
+	export JAVA_VER="${i#*=}"
+	echo "Using  java version " ${JAVA_VER}
+	#shift
+    ;;
+
+
+    *)    # unknown option            
+    ;;
+esac
+done
+
+
+if [[ $JAVA_VER != *"1.8.0"* ]]; then
+    #echo 'Java > 1.8'
+    export JVM_EARGS="--add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/javax.swing.text.html=ALL-UNNAMED --add-opens java.desktop/sun.swing=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED"
+fi
+
+
+${JAVA_VER}/bin/java ${JVM_EARGS} ${JVM_ARGS} -cp /opt/gfa/pshell/${PSHELL_VER} ch.psi.pshell.plotter.View $@
+
+
+
