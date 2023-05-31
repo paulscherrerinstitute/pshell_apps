@@ -51,11 +51,6 @@
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace max="32767" attributes="0"/>
-                  <Component id="buttonStart" min="-2" pref="189" max="-2" attributes="0"/>
-                  <EmptySpace max="32767" attributes="0"/>
-              </Group>
-              <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="jLabel7" linkSize="3" alignment="1" min="-2" max="-2" attributes="0"/>
@@ -69,26 +64,41 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
-                          <Component id="checkQuadratic" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="32767" attributes="0"/>
-                          <Component id="buttonElog" min="-2" max="-2" attributes="0"/>
+                      <Group type="102" attributes="0">
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="checkAlign" min="-2" max="-2" attributes="0"/>
+                              <Component id="comboTypeY" min="-2" max="-2" attributes="0"/>
+                              <Component id="comboTypeX" min="-2" max="-2" attributes="0"/>
+                              <Component id="textCorrelation" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
+                              <Component id="spinnerInterval" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="spinnerWindow" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="textLinear" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
+                              <Component id="checkLinear" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
+                                  <Component id="textPeak" alignment="0" max="32767" attributes="0"/>
+                                  <Component id="textQuadratic" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
+                              </Group>
+                          </Group>
+                          <EmptySpace min="0" pref="70" max="32767" attributes="0"/>
+                      </Group>
+                      <Group type="102" alignment="1" attributes="0">
+                          <Group type="103" groupAlignment="1" attributes="0">
+                              <Component id="textDevX" alignment="0" max="32767" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Component id="checkQuadratic" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
+                                  <Component id="buttonElog" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="textDevY" alignment="0" max="32767" attributes="0"/>
+                          </Group>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
-                      <Component id="textDevY" alignment="0" max="32767" attributes="0"/>
-                      <Component id="textDevX" pref="318" max="32767" attributes="0"/>
-                      <Component id="comboTypeY" min="-2" max="-2" attributes="0"/>
-                      <Component id="comboTypeX" min="-2" max="-2" attributes="0"/>
-                      <Component id="textCorrelation" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
-                      <Component id="spinnerInterval" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="spinnerWindow" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="textLinear" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
-                      <Component id="checkLinear" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
-                          <Component id="textPeak" alignment="0" max="32767" attributes="0"/>
-                          <Component id="textQuadratic" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
-                      </Group>
                   </Group>
+              </Group>
+              <Group type="102" alignment="0" attributes="0">
+                  <EmptySpace max="32767" attributes="0"/>
+                  <Component id="buttonStart" min="-2" pref="189" max="-2" attributes="0"/>
+                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -119,14 +129,16 @@
                       <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="spinnerWindow" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="checkAlign" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Component id="checkLinear" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="checkQuadratic" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="buttonElog" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="15" max="32767" attributes="0"/>
+                  <EmptySpace type="unrelated" max="32767" attributes="0"/>
                   <Group type="103" groupAlignment="2" attributes="0">
                       <Component id="textCorrelation" alignment="2" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel5" alignment="2" min="-2" max="-2" attributes="0"/>
@@ -146,9 +158,9 @@
                       <Component id="jLabel8" alignment="2" min="-2" max="-2" attributes="0"/>
                       <Component id="textPeak" alignment="2" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="16" max="32767" attributes="0"/>
+                  <EmptySpace type="separate" max="32767" attributes="0"/>
                   <Component id="buttonStart" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="33" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -306,6 +318,11 @@
           <Properties>
             <Property name="editable" type="boolean" value="false"/>
             <Property name="horizontalAlignment" type="int" value="0"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="checkAlign">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Align Camera Streams"/>
           </Properties>
         </Component>
       </SubComponents>

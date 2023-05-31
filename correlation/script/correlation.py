@@ -4,8 +4,7 @@ from mathutils import fit_polynomial, PolynomialFunction
 from plotutils import plot_line, plot_function
 from ch.psi.pshell.swing.Shell import getColorStdout
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation as PearsonsCorrelation
-import ch.psi.pshell.bs.PipelineServer as PipelineServer
-
+import ch.psi.pshell.bs.StreamMerger as StreamMerger
 
 TYPE_CHANNEL = 0
 TYPE_STREAM = 1
@@ -15,24 +14,32 @@ INVOKE_PLOT_UPDATES = True
 
 if get_exec_pars().source == CommandSource.ui:
     dx = "SINEG01-DICT215:B1_CHARGE"
+    #dx=get_beam_ok_channel(1)
     #dx = "SLG-LCAM-C042 x_rms"    
-    dxtype = TYPE_CHANNEL
+    #dxtype = TYPE_CHANNEL
     dxtype = TYPE_STREAM
     #dxtype = TYPE_CAMERA
-    #dy = "SINDI01-RLLE-STA:SLAVE1-DLTIMER"
-    dy = "SLG-LCAM-C042 y_rms"
     
-    dytype = TYPE_CHANNEL
+    #dy = "SINDI01-RLLE-STA:SLAVE1-DLTIMER"
+    #dy = "SLG-LCAM-C042 y_rms"    
+    #dytype = TYPE_CHANNEL    
+    dy = "SATES31-CAMS187-RIXS1_sp1 intensity"
     dytype = TYPE_CAMERA
-    dy = "SINEG01-DICT215:B1_CHARGE"
-    dytype = TYPE_STREAM
-    interval = 0.10
+    #dy=get_beam_ok_channel(2)
+    #dytype = TYPE_STREAM
+    
+    interval = 0.01
     window = 40
     p = plot(None)[0]    
     linear_fit = True
     quadratic_fit = True
+    merge_camera_stream = True
 print dx, dxtype
 print dy, dytype
+
+#Backward compatible with old panel
+if not "merge_camera_stream" in globals():
+    merge_camera_stream = False
 
 corr = None
 pars_lin = None 
@@ -43,7 +50,6 @@ stop_exec = None
 
 
 bs = TYPE_STREAM in [dxtype, dytype]
-
 
 for s in p.getAllSeries():
     p.removeSeries(s)    
@@ -75,8 +81,7 @@ def _get_device(d, type):
         except:
             pass
         if d is None:            
-            offset = 0
-            
+            offset = 0            
             if type==TYPE_STREAM:
                 if " " in name:
                     tokens = name.split(" ")
@@ -85,7 +90,9 @@ def _get_device(d, type):
                 if _stream == None:
                     _stream = Stream("corr_stream", dispatcher)
                     instances.append(_stream)
-                d = _stream.addScalar(name, name, int(interval*100), offset)
+                #d = _stream.addScalar(name, name, int(interval*100), offset)
+                _stream.addScalar(name, name, int(interval*100), offset)
+                d=name
             elif type==TYPE_CHANNEL:
                 d =  Channel(name)    
                 d.set_monitored(True)
@@ -99,7 +106,8 @@ def _get_device(d, type):
             if not isinstance(d, basestring):    
                 instances.append(d)
             try:
-                egu = caget(name+".EGU",'s')
+                if type==TYPE_CHANNEL:
+                    egu = caget(name+".EGU",'s')
             except:
                 pass            
     else:
@@ -115,7 +123,7 @@ dy, eguy = _get_device(dy, dytype)
 p.getAxis(p.AxisId.X).setLabel(egux)
 p.getAxis(p.AxisId.Y).setLabel(eguy)
 
-
+merge = False
 try:
     if _stream != None:
         _stream.initialize()
@@ -126,15 +134,35 @@ try:
         cam_server.start(_camname, shared )    
         
         cam_server.stream.waitCacheChange(10000);
+        _camera_stream = cam_server.stream
+
+        if merge_camera_stream:
+            merge =  ((dxtype==TYPE_CAMERA) and (dytype == TYPE_STREAM)) or ((dxtype==TYPE_STREAM) and (dytype == TYPE_CAMERA))
+            if merge:
+                _merger = StreamMerger("stream", _stream, cam_server.stream)
+                _merger.monitored=True
+                _merger.start()
+                _camera_stream.setBufferCapacity(500)
+                _stream.setBufferCapacity(500)
+                instances.append(_merger)
+                _merger.waitCacheChange(5000)
+                #print _merger.readables
+                _camera_stream=_merger
+                _stream = _merger                
+        
         if  dxtype==TYPE_CAMERA:
-            dx=cam_server.stream.getChild(dx)
+            dx=_camera_stream.getChild(dx)
         if  dytype==TYPE_CAMERA:
-            dy=cam_server.stream.getChild(dy)
+            dy=_camera_stream.getChild(dy)
+
+    if  dxtype==TYPE_STREAM:
+        dx=_stream.getChild(dx)
+    if  dytype==TYPE_STREAM:
+        dy=_stream.getChild(dy)                   
         
     p.addSeries(LinePlotSeries("Data")) 
     sd=p.getSeries(0)
-    sd.setLinesVisible(False)    
-    
+    sd.setLinesVisible(False)        
     sd.setPointSize(4)
     
     if get_exec_pars().source == CommandSource.ui:
@@ -144,27 +172,14 @@ try:
             p.removeMarker(peak_marker)    
         marker=None
         peak_marker=None
-            
-    
+                
     while(True):
         #Sample and plot data
         if bs == True:
-            _stream.waitValueNot(_stream.take(), 10000)
-            bsdata = list(_stream.take().values())
-        
-        if dxtype==TYPE_CHANNEL:
-            x=dx.read() 
-        elif dxtype==TYPE_STREAM:
-            x=bsdata.pop(0)
-        elif dxtype==TYPE_CAMERA:
-            x=dx.read()
-                        
-        if dytype==TYPE_CHANNEL:
-            y=dy.read()
-        elif dytype==TYPE_STREAM:
-            y=bsdata.pop(0)
-        elif dytype==TYPE_CAMERA:
-            y=dy.read()
+            _stream.waitCacheChange(10000)
+            #bsdata = list(_stream.take().values())
+        x=dx.read() 
+        y=dy.read()
             
         def update():
             global marker, peak_marker, corr, pars_lin, pars_quad, pos_peak, neg_peak, stop_exec
@@ -239,3 +254,6 @@ finally:
             dev.close()
         except:
             pass
+    if _camname != None:
+        cam_server.stop()    
+            
