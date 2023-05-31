@@ -20,7 +20,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="plot" pref="345" max="32767" attributes="0"/>
+              <Component id="plot" pref="277" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -65,25 +65,29 @@
                       <Component id="jLabel2" linkSize="1" alignment="1" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel1" linkSize="1" alignment="1" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel4" linkSize="1" alignment="1" min="-2" max="-2" attributes="0"/>
+                      <Component id="jLabel8" alignment="1" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" attributes="0">
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="comboTypeY" min="-2" max="-2" attributes="0"/>
-                              <Component id="comboTypeX" min="-2" max="-2" attributes="0"/>
-                              <Component id="textCorrelation" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
-                              <Component id="spinnerInterval" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Component id="spinnerWindow" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Component id="textLinear" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
-                              <Component id="textQuadratic" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
-                              <Component id="checkLinear" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Component id="checkQuadratic" alignment="0" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace min="26" max="32767" attributes="0"/>
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="checkQuadratic" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="32767" attributes="0"/>
+                          <Component id="buttonElog" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
                       </Group>
-                      <Component id="textDevX" max="32767" attributes="0"/>
                       <Component id="textDevY" alignment="0" max="32767" attributes="0"/>
+                      <Component id="textDevX" pref="318" max="32767" attributes="0"/>
+                      <Component id="comboTypeY" min="-2" max="-2" attributes="0"/>
+                      <Component id="comboTypeX" min="-2" max="-2" attributes="0"/>
+                      <Component id="textCorrelation" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
+                      <Component id="spinnerInterval" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="spinnerWindow" linkSize="2" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="textLinear" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
+                      <Component id="checkLinear" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" alignment="0" groupAlignment="1" max="-2" attributes="0">
+                          <Component id="textPeak" alignment="0" max="32767" attributes="0"/>
+                          <Component id="textQuadratic" linkSize="4" alignment="0" pref="250" max="32767" attributes="0"/>
+                      </Group>
                   </Group>
               </Group>
           </Group>
@@ -92,18 +96,18 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="textDevX" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                      <Component id="textDevX" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="comboTypeX" min="-2" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="textDevY" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="1" attributes="0">
+                      <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                      <Component id="textDevY" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" pref="3" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
                   <Component id="comboTypeY" min="-2" max="-2" attributes="0"/>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -118,8 +122,11 @@
                   <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Component id="checkLinear" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="checkQuadratic" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace pref="22" max="32767" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="checkQuadratic" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="buttonElog" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace pref="15" max="32767" attributes="0"/>
                   <Group type="103" groupAlignment="2" attributes="0">
                       <Component id="textCorrelation" alignment="2" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel5" alignment="2" min="-2" max="-2" attributes="0"/>
@@ -134,7 +141,12 @@
                       <Component id="jLabel7" alignment="2" min="-2" max="-2" attributes="0"/>
                       <Component id="textQuadratic" alignment="2" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="24" max="32767" attributes="0"/>
+                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="2" attributes="0">
+                      <Component id="jLabel8" alignment="2" min="-2" max="-2" attributes="0"/>
+                      <Component id="textPeak" alignment="2" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace pref="16" max="32767" attributes="0"/>
                   <Component id="buttonStart" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
               </Group>
@@ -147,10 +159,6 @@
             <Property name="horizontalAlignment" type="int" value="11"/>
             <Property name="text" type="java.lang.String" value="X device:"/>
           </Properties>
-        </Component>
-        <Component class="javax.swing.JTextField" name="textDevX">
-        </Component>
-        <Component class="javax.swing.JTextField" name="textDevY">
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel2">
           <Properties>
@@ -249,6 +257,9 @@
               </StringArray>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboTypeXActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JComboBox" name="comboTypeY">
           <Properties>
@@ -259,6 +270,42 @@
                 <StringItem index="2" value="Camera"/>
               </StringArray>
             </Property>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboTypeYActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="ch.psi.pshell.swing.ChannelSelector" name="textDevX">
+          <Properties>
+            <Property name="historySize" type="int" value="20"/>
+            <Property name="name" type="java.lang.String" value="Correlation_textDevX" noResource="true"/>
+          </Properties>
+        </Component>
+        <Component class="ch.psi.pshell.swing.ChannelSelector" name="textDevY">
+          <Properties>
+            <Property name="historySize" type="int" value="20"/>
+            <Property name="name" type="java.lang.String" value="Correlation_textDevY" noResource="true"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JButton" name="buttonElog">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="ELOG"/>
+            <Property name="enabled" type="boolean" value="false"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonElogActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel8">
+          <Properties>
+            <Property name="horizontalAlignment" type="int" value="4"/>
+            <Property name="text" type="java.lang.String" value="Peak:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JTextField" name="textPeak">
+          <Properties>
+            <Property name="editable" type="boolean" value="false"/>
+            <Property name="horizontalAlignment" type="int" value="0"/>
           </Properties>
         </Component>
       </SubComponents>

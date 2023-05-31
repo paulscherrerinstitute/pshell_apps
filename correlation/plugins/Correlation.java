@@ -267,12 +267,12 @@ public class Correlation extends Panel {
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         jLabel3.setText("Interval (s):");
 
-        spinnerInterval.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(0.1d), Double.valueOf(0.001d), null, Double.valueOf(1.0d)));
+        spinnerInterval.setModel(new javax.swing.SpinnerNumberModel(0.1d, 0.001d, null, 1.0d));
 
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         jLabel4.setText("Window size:");
 
-        spinnerWindow.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(50), Integer.valueOf(3), null, Integer.valueOf(1)));
+        spinnerWindow.setModel(new javax.swing.SpinnerNumberModel(50, 3, null, 1));
 
         buttonStart.setText("Start");
         buttonStart.addActionListener(new java.awt.event.ActionListener() {
