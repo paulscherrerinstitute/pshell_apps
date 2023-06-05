@@ -46,6 +46,13 @@ public class Correlation extends Panel {
             System.err.println(ex.getMessage());
         }                
         try{
+            if (App.hasArgument("align")) {
+                checkAlign.setSelected(App.getBoolArgumentValue("align"));
+            }        
+        } catch (Exception ex){            
+            System.err.println(ex.getMessage());
+        }                
+        try{
             if (App.hasArgument("linear")) {
                 checkLinear.setSelected(App.getBoolArgumentValue("linear"));
             }        
