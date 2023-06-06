@@ -20,6 +20,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -31,68 +32,70 @@ public class Correlation extends Panel {
         this.setPersistedComponents(new Component[]{textDevX, textDevY, spinnerInterval, spinnerWindow, comboTypeX, comboTypeY});
         plot.getAxis(Plot.AxisId.X).setLabel(null);
         plot.getAxis(Plot.AxisId.Y).setLabel(null);
-        try{
-            if (App.hasArgument("interval")) {
-                spinnerInterval.setValue(Double.valueOf(App.getArgumentValue("interval")));
-            }        
-        } catch (Exception ex){            
-            System.err.println(ex.getMessage());
-        }
-        try{
-            if (App.hasArgument("window")) {
-                spinnerWindow.setValue(Integer.valueOf(App.getArgumentValue("window")));
-            }        
-        } catch (Exception ex){            
-            System.err.println(ex.getMessage());
-        }                
-        try{
-            if (App.hasArgument("align")) {
-                checkAlign.setSelected(App.getBoolArgumentValue("align"));
-            }        
-        } catch (Exception ex){            
-            System.err.println(ex.getMessage());
-        }                
-        try{
-            if (App.hasArgument("linear")) {
-                checkLinear.setSelected(App.getBoolArgumentValue("linear"));
-            }        
-        } catch (Exception ex){            
-            System.err.println(ex.getMessage());
-        }  
-        try{
-            if (App.hasArgument("quadratic")) {
-                checkQuadratic.setSelected(App.getBoolArgumentValue("quadratic"));
-            }        
-        } catch (Exception ex){            
-            System.err.println(ex.getMessage());
-        }          
     }
 
      //Overridable callbacks
     @Override
     public void onInitialize(int runCount) {
-        super.onInitialize(runCount);
+        if (runCount==0){
+            super.onInitialize(runCount);
+            if (App.hasArgument("dx")) {
+                    textDevX.setText(App.getArgumentValue("dx"));
+            }
+            if (App.hasArgument("dy")) {
+                    textDevY.setText(App.getArgumentValue("dy"));
+            }        
+            try{
+                if (App.hasArgument("dxtype")) {
+                    comboTypeX.setSelectedIndex(Integer.valueOf(App.getArgumentValue("dxtype")));
+                }        
+            } catch (Exception ex){            
+               System.err.println(ex.getMessage());
+            }
+            try{
+                if (App.hasArgument("dytype")) {
+                    comboTypeY.setSelectedIndex(Integer.valueOf(App.getArgumentValue("dytype")));
+                }        
+            } catch (Exception ex){            
+               System.err.println(ex.getMessage());
+            }
+            try{
+                if (App.hasArgument("interval")) {
+                    spinnerInterval.setValue(Double.valueOf(App.getArgumentValue("interval")));
+                }        
+            } catch (Exception ex){            
+                System.err.println(ex.getMessage());
+            }
+            try{
+                if (App.hasArgument("window")) {
+                    spinnerWindow.setValue(Integer.valueOf(App.getArgumentValue("window")));
+                }        
+            } catch (Exception ex){            
+                System.err.println(ex.getMessage());
+            }                
+            try{
+                if (App.hasArgument("align")) {
+                    checkAlign.setSelected(App.getBoolArgumentValue("align"));
+                }        
+            } catch (Exception ex){            
+                System.err.println(ex.getMessage());
+            }                
+            try{
+                if (App.hasArgument("linear")) {
+                    checkLinear.setSelected(App.getBoolArgumentValue("linear"));
+                }        
+            } catch (Exception ex){            
+                System.err.println(ex.getMessage());
+            }  
+            try{
+                if (App.hasArgument("quadratic")) {
+                    checkQuadratic.setSelected(App.getBoolArgumentValue("quadratic"));
+                }        
+            } catch (Exception ex){            
+                System.err.println(ex.getMessage());
+            }          
+        }
         this.startTimer(100, 10);
-        if (App.hasArgument("dx")) {
-                textDevX.setText(App.getArgumentValue("dx"));
-        }
-        if (App.hasArgument("dy")) {
-                textDevY.setText(App.getArgumentValue("dy"));
-        }        
-        try{
-            if (App.hasArgument("dxtype")) {
-                comboTypeX.setSelectedIndex(Integer.valueOf(App.getArgumentValue("dxtype")));
-            }        
-        } catch (Exception ex){            
-           System.err.println(ex.getMessage());
-        }
-        try{
-            if (App.hasArgument("dytype")) {
-                comboTypeY.setSelectedIndex(Integer.valueOf(App.getArgumentValue("dytype")));
-            }        
-        } catch (Exception ex){            
-           System.err.println(ex.getMessage());
-        }
         comboTypeXActionPerformed(null);
         comboTypeYActionPerformed(null);
     }

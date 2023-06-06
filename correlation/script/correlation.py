@@ -1,6 +1,6 @@
 import math
 import sys, traceback          
-from mathutils import fit_polynomial, PolynomialFunction
+from mathutils import fit_polynomial, PolynomialFunction, calculate_peaks 
 from plotutils import plot_line, plot_function
 from ch.psi.pshell.swing.Shell import getColorStdout
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation as PearsonsCorrelation
