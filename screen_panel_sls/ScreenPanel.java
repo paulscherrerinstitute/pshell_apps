@@ -46,9 +46,14 @@ import javax.swing.SwingUtilities;
  */
 public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewerListener{
     
-    public static final String LASER_TYPE = "Laser";
-    public static final String ELECTRONS_TYPE = "Electrons";
-    public static final String PHOTONICS_TYPE = "Photonics";
+    public static final String BTR_TYPE = "BTR";
+    public static final String BOOSTER_TYPE = "Booster";
+    public static final String FRONTEND_TYPE = "Frontend";
+    public static final String LTB_TYPE = "LTB";
+    public static final String LINAC_TYPE = "Linac";
+    public static final String RF_TYPE = "RF";
+    public static final String RING_TYPE = "Ring";
+    public static final String SIMULATION_TYPE = "Simulation";
     
     DiscretePositioner screen;
     ChannelDouble exposure;
@@ -213,6 +218,19 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         ledPower=null;
         flStep=null;
         
+        comboScreen.setModel(new DefaultComboBoxModel());
+        comboScreen.setEnabled(false);
+        valueScreen.setEnabled(false);
+        panelFlStep.setEnabled(false);
+        buttonFLDown.setEnabled(false);
+        buttonFLUp.setEnabled(false);  
+        selLedPower.setEnabled(false);
+        panelExposure.setEnabled(false);
+        selMirror.setEnabled(false);
+        if ((name==null)|| name.isBlank()){
+            panelScreen.setVisible(false);
+            panelControls.setVisible(false);        
+        }        
 	updateDialogTitle();
     }    
     
@@ -221,14 +239,22 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
     public void onOpenedStream(String name, String instance) throws Exception {        
         System.out.println("Initialized instance: " + instance);        
         String cameraName = camServerViewer.getCameraName();
-        boolean electrons = (cameraName!=null) && camServerViewer.getCameraTypes(cameraName).contains(ELECTRONS_TYPE);
-        comboScreen.setModel(new DefaultComboBoxModel());
-        comboScreen.setEnabled(false);
-        electrons = true;
-        panelScreen.setVisible(electrons);
-        panelControls.setVisible(electrons);
+        List types = camServerViewer.getCameraTypes(cameraName);
+        boolean btr = (types!=null) && types.contains(BTR_TYPE);
+        boolean booster = (types!=null) && types.contains(BOOSTER_TYPE);
+        boolean frontend = (types!=null) && types.contains(FRONTEND_TYPE);
+        boolean ltb = (types!=null) && types.contains(LTB_TYPE);
+        boolean linac = (types!=null) && types.contains(LINAC_TYPE);
+        boolean rf = (types!=null) && types.contains(RF_TYPE);
+        boolean ring = (types!=null) && types.contains(RING_TYPE);
+        
+        boolean cameraControls = linac || ltb || booster || btr || ring;
+        boolean flipMirror = linac || ltb || booster;
+
+        panelScreen.setVisible(cameraControls);
+        panelControls.setVisible(cameraControls);
         if (cameraName!=null){            
-            if (electrons) {
+            if (cameraControls) {
                 //Parallelizing initialization
                 devicesInitTask = new Thread(() -> {
                     
@@ -244,13 +270,17 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                     panelExposure.setEnabled(exposure != null);
                     panelExposure.setDevice(exposure);
  
-                    try {
-                        mirror = new BinaryPositioner("Flip Mirror", cameraName + ":FLIP-MIRROR");
-                        mirror.setMonitored(true);
-                        mirror.initialize();
+                    if (flipMirror){
+                        try {
+                            mirror = new BinaryPositioner("Flip Mirror", cameraName + ":FLIP-MIRROR");
+                            mirror.setMonitored(true);
+                            mirror.initialize();
 
-                    } catch (Exception ex) {
-                        System.err.println(ex.getMessage());
+                        } catch (Exception ex) {
+                            System.err.println(ex.getMessage());
+                            mirror = null;
+                        }
+                    } else {
                         mirror = null;
                     }
                     selMirror.setEnabled(mirror != null);
@@ -279,6 +309,8 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                         flStep = null;
                     }
                     panelFlStep.setEnabled(flStep != null);
+                    buttonFLDown.setEnabled(flStep != null);
+                    buttonFLUp.setEnabled(flStep != null);
                     panelFlStep.setDevice(flStep);                    
                     
                     try{                                                
@@ -298,6 +330,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                         screen = null;
                     }
                     comboScreen.setEnabled(screen != null);
+                    valueScreen.setEnabled(screen != null);
                     valueScreen.setDevice(screen);
 
                     
@@ -349,8 +382,17 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
     }   
     
     public void onSavingImages(String name, String instance, DataManager dm, String pathRoot) throws IOException{
-        if (camServerViewer.getTypes().contains(ELECTRONS_TYPE)) {
+        if (valueScreen.isVisible() && valueScreen.isEnabled()) {
             dm.setAttribute(pathRoot, "Screen", String.valueOf(valueScreen.getLabel().getText()));
+        }
+        if (panelExposure.isVisible() && panelExposure.isEnabled()) {
+            dm.setAttribute(pathRoot, "Exposure", String.valueOf(panelExposure.getValue()));
+        }
+        if (selMirror.isVisible() && selMirror.isEnabled()) {
+            dm.setAttribute(pathRoot, "Mirror", String.valueOf(selMirror.getComboBox().getSelectedItem()));
+        }
+        if (selLedPower.isVisible() && selLedPower.isEnabled()) {
+            dm.setAttribute(pathRoot, "LedPower", String.valueOf(selLedPower.getComboBox().getSelectedItem()));
         }
     }
     
