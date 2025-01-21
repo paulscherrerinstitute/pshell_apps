@@ -4,6 +4,8 @@ import ch.psi.pshell.data.DataManager;
 import ch.psi.pshell.device.Device;
 import ch.psi.pshell.epics.ChannelInteger;
 import ch.psi.pshell.epics.DiscretePositioner;
+import ch.psi.pshell.epics.BinaryPositioner;
+import ch.psi.pshell.epics.ChannelDouble;
 import ch.psi.pshell.epics.Epics;
 import ch.psi.pshell.imaging.Overlay;
 import ch.psi.pshell.imaging.Overlays;
@@ -47,10 +49,14 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
     public static final String LASER_TYPE = "Laser";
     public static final String ELECTRONS_TYPE = "Electrons";
     public static final String PHOTONICS_TYPE = "Photonics";
-    public static final String TWO_PULSES_TYPE = "2Pulses";
     
     DiscretePositioner screen;
-    DiscretePositioner filter;
+    ChannelDouble exposure;
+    ChannelDouble flStep;
+    //DiscretePositioner mirror;
+    BinaryPositioner mirror;
+    BinaryPositioner ledPower;
+
     final Logger logger;
     
     
@@ -58,9 +64,8 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
     public ScreenPanel() {
         logger = Logger.getLogger(getClass().getName());
         initComponents();        
-        panelPulse.setVisible(false);
         panelScreen.setVisible(false);
-        panelFilter.setVisible(false);
+        panelControls.setVisible(false);
         camServerViewer.setListener(this);
         this.remove(customPanel);
         camServerViewer.getCustomPanel().add(customPanel);
@@ -111,7 +116,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
 
     @Override
     public void onStart() {
-        super.onStart();        
+        super.onStart(); 
         try {            
             camServerViewer.setCameraServerUrl(App.getArgumentValue(ARG_CAMERA_SERVER));
             camServerViewer.setPipelineServerUrl(App.getArgumentValue(ARG_PIPELINE_SERVER));
@@ -172,11 +177,11 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
     
     @Override
     protected void onTimer() {
-        for (Device dev : new Device[]{screen, filter}) {
-            if (dev != null) {
-                dev.request();
-            }
-        }
+        //for (Device dev : new Device[]{screen, exposure}) {
+        //    if (dev != null) {
+        //        dev.request();
+        //    }
+        //}
         
         checkAppState();
                 
@@ -189,19 +194,6 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                 logger.log(Level.SEVERE, null, ex);
             }
         }
-        try {            
-            if (panelPulse.isVisible()){
-                CamServerViewer.Frame frame = camServerViewer.getCurrentFrame();
-                Object pulse = null;
-                try{
-                    pulse = frame.cache.getValue("pulse");
-                } catch (Exception ex) {                            
-                }
-                textPulse.setText((pulse==null) ? "" : Str.toString(pulse));
-            }                                
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }        
     }   
 
     @Override
@@ -210,43 +202,87 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         if ((devicesInitTask != null) && (devicesInitTask.isAlive())) {
             devicesInitTask.interrupt();
         }
-        if (screen != null) {
-            screen.close();
-            screen = null;
-        }
-        if (filter != null) {
-            filter.close();
-            filter = null;
+        for (Device dev : new Device[]{screen, exposure, mirror, ledPower, flStep}) {
+            if (dev != null) {
+                dev.close();
+            }
         }        
+        screen = null;
+        exposure = null;
+        mirror=null;
+        ledPower=null;
+        flStep=null;
+        
 	updateDialogTitle();
     }    
     
 
     @Override
-    public void onOpenedStream(String name, String instance) throws Exception {
-        
+    public void onOpenedStream(String name, String instance) throws Exception {        
         System.out.println("Initialized instance: " + instance);        
         String cameraName = camServerViewer.getCameraName();
         boolean electrons = (cameraName!=null) && camServerViewer.getCameraTypes(cameraName).contains(ELECTRONS_TYPE);
-        boolean twoPulses = (cameraName!=null) && camServerViewer.getCameraTypes(cameraName).contains(TWO_PULSES_TYPE);
         comboScreen.setModel(new DefaultComboBoxModel());
         comboScreen.setEnabled(false);
-        comboFilter.setModel(new DefaultComboBoxModel());
-        comboFilter.setEnabled(false);
-        panelFilter.setVisible(electrons);
+        electrons = true;
         panelScreen.setVisible(electrons);
-        panelPulse.setVisible(twoPulses);
-        textPulse.setText("");
-        if (cameraName!=null){
+        panelControls.setVisible(electrons);
+        if (cameraName!=null){            
             if (electrons) {
                 //Parallelizing initialization
                 devicesInitTask = new Thread(() -> {
+                    
                     try {
-                        if (cameraName.contains("DSRM")) {
-                            screen = new DiscretePositioner("CurrentScreen", cameraName + ":POSITION_SP", cameraName + ":POSITION");
-                        } else {
-                            screen = new DiscretePositioner("CurrentScreen", cameraName + ":SET_SCREEN1_POS", cameraName + ":GET_SCREEN1_POS");
-                        }
+                        exposure = new ChannelDouble("Exposure Time", cameraName + ":EXPOSURE");
+                        exposure.setMonitored(true);
+                        exposure.initialize();
+
+                    } catch (Exception ex) {
+                        System.err.println(ex.getMessage());
+                        exposure = null;
+                    }
+                    panelExposure.setEnabled(exposure != null);
+                    panelExposure.setDevice(exposure);
+ 
+                    try {
+                        mirror = new BinaryPositioner("Flip Mirror", cameraName + ":FLIP-MIRROR");
+                        mirror.setMonitored(true);
+                        mirror.initialize();
+
+                    } catch (Exception ex) {
+                        System.err.println(ex.getMessage());
+                        mirror = null;
+                    }
+                    selMirror.setEnabled(mirror != null);
+                    selMirror.setDevice(mirror);
+                    
+ 
+                    try {
+                        ledPower = new BinaryPositioner("Led Power", cameraName + ":LED-POWER");
+                        ledPower.setMonitored(true);
+                        ledPower.initialize();
+
+                    } catch (Exception ex) {
+                        System.err.println(ex.getMessage());
+                        ledPower = null;
+                    }
+                    selLedPower.setEnabled(ledPower != null);
+                    selLedPower.setDevice(ledPower);         
+                    
+                    try {
+                        flStep = new ChannelDouble("Lens FL Step", cameraName + "-LENS:FL_STEP");
+                        flStep.setMonitored(true);
+                        flStep.initialize();
+
+                    } catch (Exception ex) {
+                        System.err.println(ex.getMessage());
+                        flStep = null;
+                    }
+                    panelFlStep.setEnabled(flStep != null);
+                    panelFlStep.setDevice(flStep);                    
+                    
+                    try{                                                
+                        screen = new DiscretePositioner("CurrentScreen", cameraName + ":SET_SCREEN1_POS", cameraName + ":GET_SCREEN1_POS");
                         screen.setMonitored(true);
                         screen.initialize();
                         DefaultComboBoxModel model = new DefaultComboBoxModel();
@@ -264,22 +300,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                     comboScreen.setEnabled(screen != null);
                     valueScreen.setDevice(screen);
 
-                    try {
-                        filter = new DiscretePositioner("CurrentFilter", cameraName + ":SET_FILTER", cameraName + ":GET_FILTER");
-                        filter.setMonitored(true);
-                        filter.initialize();
-                        DefaultComboBoxModel model = new DefaultComboBoxModel();
-                        for (String pos : filter.getPositions()) {
-                            model.addElement(pos);
-                        }
-                        comboFilter.setModel(model);
-                        comboFilter.setSelectedItem(filter.read());
-                    } catch (Exception ex) {
-                        System.err.println(ex.getMessage());
-                        filter = null;
-                    }
-                    comboFilter.setEnabled(filter != null);
-                    valueFilter.setDevice(filter);
+                    
                 });
                 devicesInitTask.start();
             }
@@ -315,7 +336,6 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
             StringBuilder message = new StringBuilder();
             message.append("Camera: ").append(name).append("\n");
             message.append("Screen: ").append(String.valueOf(valueScreen.getLabel().getText())).append("\n");
-            message.append("Filter: ").append(String.valueOf(valueFilter.getLabel().getText())).append("\n");
             message.append("Data file: ").append(getContext().getExecutionPars().getPath()).append("\n");
             message.append("Comment: ").append(textComment.getText()).append("\n");
             //Add slicing message
@@ -331,7 +351,6 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
     public void onSavingImages(String name, String instance, DataManager dm, String pathRoot) throws IOException{
         if (camServerViewer.getTypes().contains(ELECTRONS_TYPE)) {
             dm.setAttribute(pathRoot, "Screen", String.valueOf(valueScreen.getLabel().getText()));
-            dm.setAttribute(pathRoot, "Filter", String.valueOf(valueFilter.getLabel().getText()));
         }
     }
     
@@ -385,13 +404,17 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         panelScreen = new javax.swing.JPanel();
         valueScreen = new ch.psi.pshell.swing.DeviceValuePanel();
         comboScreen = new javax.swing.JComboBox();
-        panelFilter = new javax.swing.JPanel();
-        valueFilter = new ch.psi.pshell.swing.DeviceValuePanel();
-        comboFilter = new javax.swing.JComboBox();
-        panelPulse = new javax.swing.JPanel();
-        buttonPulse1 = new javax.swing.JButton();
-        buttonPulse2 = new javax.swing.JButton();
-        textPulse = new javax.swing.JTextField();
+        panelControls = new javax.swing.JPanel();
+        panelExposure = new ch.psi.pshell.swing.RegisterPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        selMirror = new ch.psi.pshell.swing.DiscretePositionerSelector();
+        jLabel3 = new javax.swing.JLabel();
+        selLedPower = new ch.psi.pshell.swing.DiscretePositionerSelector();
+        jLabel4 = new javax.swing.JLabel();
+        panelFlStep = new ch.psi.pshell.swing.RegisterPanel();
+        buttonFLDown = new javax.swing.JButton();
+        buttonFLUp = new javax.swing.JButton();
         camServerViewer = new ch.psi.pshell.ui.CamServerViewer();
 
         setPreferredSize(new java.awt.Dimension(873, 600));
@@ -427,103 +450,100 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                 .addContainerGap())
         );
 
-        panelFilter.setBorder(javax.swing.BorderFactory.createTitledBorder("Filter"));
+        panelControls.setBorder(javax.swing.BorderFactory.createTitledBorder("Camera Control"));
 
-        comboFilter.setEnabled(false);
-        comboFilter.addActionListener(new java.awt.event.ActionListener() {
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel1.setText("Exposure:");
+
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel2.setText("Flip Mirror:");
+
+        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel3.setText("Led Power:");
+
+        jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel4.setText("Lens FL:");
+
+        buttonFLDown.setText("<");
+        buttonFLDown.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboFilterActionPerformed(evt);
+                buttonFLDownActionPerformed(evt);
             }
         });
 
-        javax.swing.GroupLayout panelFilterLayout = new javax.swing.GroupLayout(panelFilter);
-        panelFilter.setLayout(panelFilterLayout);
-        panelFilterLayout.setHorizontalGroup(
-            panelFilterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelFilterLayout.createSequentialGroup()
+        buttonFLUp.setText(">");
+        buttonFLUp.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonFLUpActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout panelControlsLayout = new javax.swing.GroupLayout(panelControls);
+        panelControls.setLayout(panelControlsLayout);
+        panelControlsLayout.setHorizontalGroup(
+            panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelControlsLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(panelFilterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(valueFilter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(comboFilter, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(panelExposure, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(selMirror, javax.swing.GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(selLedPower, javax.swing.GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(panelControlsLayout.createSequentialGroup()
+                        .addComponent(buttonFLDown)
+                        .addGap(0, 0, 0)
+                        .addComponent(panelFlStep, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                        .addGap(0, 0, 0)
+                        .addComponent(buttonFLUp)))
                 .addContainerGap())
         );
-        panelFilterLayout.setVerticalGroup(
-            panelFilterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelFilterLayout.createSequentialGroup()
-                .addGap(4, 4, 4)
-                .addComponent(comboFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+
+        panelControlsLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel1, jLabel2});
+
+        panelControlsLayout.setVerticalGroup(
+            panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelControlsLayout.createSequentialGroup()
+                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(panelExposure, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(valueFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2)
+                    .addComponent(selMirror, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel3)
+                    .addComponent(selLedPower, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel4)
+                        .addComponent(buttonFLDown))
+                    .addComponent(panelFlStep, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonFLUp))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        panelPulse.setBorder(javax.swing.BorderFactory.createTitledBorder("Pulse"));
-
-        buttonPulse1.setText("Pulse 1");
-        buttonPulse1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonPulse1ActionPerformed(evt);
-            }
-        });
-
-        buttonPulse2.setText("Pulse 2");
-        buttonPulse2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonPulse2ActionPerformed(evt);
-            }
-        });
-
-        textPulse.setEditable(false);
-        textPulse.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-
-        javax.swing.GroupLayout panelPulseLayout = new javax.swing.GroupLayout(panelPulse);
-        panelPulse.setLayout(panelPulseLayout);
-        panelPulseLayout.setHorizontalGroup(
-            panelPulseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelPulseLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(buttonPulse1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(buttonPulse2)
-                .addGap(18, 18, Short.MAX_VALUE)
-                .addComponent(textPulse, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-        );
-
-        panelPulseLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {buttonPulse1, buttonPulse2});
-
-        panelPulseLayout.setVerticalGroup(
-            panelPulseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panelPulseLayout.createSequentialGroup()
-                .addGroup(panelPulseLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(buttonPulse1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buttonPulse2, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(textPulse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
         );
 
         javax.swing.GroupLayout customPanelLayout = new javax.swing.GroupLayout(customPanel);
         customPanel.setLayout(customPanelLayout);
         customPanelLayout.setHorizontalGroup(
             customPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(customPanelLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addGroup(customPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(panelScreen, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(panelFilter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(panelPulse, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(0, 0, 0))
+            .addComponent(panelScreen, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(panelControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         customPanelLayout.setVerticalGroup(
             customPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(customPanelLayout.createSequentialGroup()
                 .addGap(0, 0, 0)
                 .addComponent(panelScreen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panelFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panelPulse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(panelControls, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(342, Short.MAX_VALUE))
         );
 
         add(customPanel, java.awt.BorderLayout.WEST);
@@ -536,20 +556,15 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         new Thread(new Runnable() {
             @Override
             public void run() {
-                ChannelInteger setpoint = null;
                 try {
                     int index = comboScreen.getSelectedIndex();
                     if (index >= 0) {
                         String cameraName = camServerViewer.getCameraName();
-                        if (cameraName.contains("DSRM")) {
-                            setpoint = new ChannelInteger(null, cameraName + ":POSITION_SP");
-                        } else {
-                            setpoint = new ChannelInteger(null, cameraName + ":SET_SCREEN1_POS");
-                        }
-                        setpoint.initialize();
-                        Integer readback = setpoint.read();
-                        if ((readback == null) || (setpoint.read() != index)) {
-                            setpoint.write(index);
+                        String channel = cameraName + ":SET_SCREEN1_POS";
+                        Integer readback = Epics.get(channel, Integer.class);
+                        if ((readback == null) || (readback != index)) {                            
+                            System.out.println("Writing " + index + " to " + channel);
+                            Epics.put(channel, Integer.valueOf(index));
                         }
                         screen.read();
                     }
@@ -557,66 +572,56 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                     showException(ex);
                 } finally {
                     comboScreen.setEnabled(true);
-                    if (setpoint != null) {
-                        setpoint.close();
-                    }
                 }
             }
         }).start();
     }//GEN-LAST:event_comboScreenActionPerformed
 
-    private void comboFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboFilterActionPerformed
+    private void buttonFLDownActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonFLDownActionPerformed
         try {
-            String setpoint = (String) comboFilter.getSelectedItem();
-            if (setpoint != null) {
-                if (!setpoint.equals(filter.read())) {
-                    filter.write(setpoint);
-                }
+            String cameraName = camServerViewer.getCameraName();
+            if ((flStep!=null) && (cameraName!=null)){                                        
+                String channel = cameraName + "-LENS:DEC_FL.PROC";
+                Epics.putq(channel, Integer.valueOf(1));
             }
         } catch (Exception ex) {
             showException(ex);
         }
-    }//GEN-LAST:event_comboFilterActionPerformed
+    }//GEN-LAST:event_buttonFLDownActionPerformed
 
-    private void buttonPulse1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPulse1ActionPerformed
+    private void buttonFLUpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonFLUpActionPerformed
         try {
-            PipelineSource server = camServerViewer.getServer();
-            if ((server != null) && (server.isStarted())) {
-                server.setInstanceConfigValue("pulse",1);
-            }
+            String cameraName = camServerViewer.getCameraName();
+            if ((flStep!=null) && (cameraName!=null)){
+                String channel = cameraName + "-LENS:INC_FL.PROC";
+                Epics.putq(channel, Integer.valueOf(1));
+           }
         } catch (Exception ex) {
             showException(ex);
         }
-    }//GEN-LAST:event_buttonPulse1ActionPerformed
-
-    private void buttonPulse2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonPulse2ActionPerformed
-        try {
-            PipelineSource server = camServerViewer.getServer();
-            if ((server != null) && (server.isStarted())) {
-                server.setInstanceConfigValue("pulse",2);
-            }
-        } catch (Exception ex) {
-            showException(ex);
-        }
-    }//GEN-LAST:event_buttonPulse2ActionPerformed
+    }//GEN-LAST:event_buttonFLUpActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonFLDown;
+    private javax.swing.JButton buttonFLUp;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.ButtonGroup buttonGroup3;
     private javax.swing.ButtonGroup buttonGroup4;
-    private javax.swing.JButton buttonPulse1;
-    private javax.swing.JButton buttonPulse2;
     private ch.psi.pshell.ui.CamServerViewer camServerViewer;
-    private javax.swing.JComboBox comboFilter;
     private javax.swing.JComboBox comboScreen;
     private javax.swing.JPanel customPanel;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JProgressBar jProgressBar1;
-    private javax.swing.JPanel panelFilter;
-    private javax.swing.JPanel panelPulse;
+    private javax.swing.JPanel panelControls;
+    private ch.psi.pshell.swing.RegisterPanel panelExposure;
+    private ch.psi.pshell.swing.RegisterPanel panelFlStep;
     private javax.swing.JPanel panelScreen;
-    private javax.swing.JTextField textPulse;
-    private ch.psi.pshell.swing.DeviceValuePanel valueFilter;
+    private ch.psi.pshell.swing.DiscretePositionerSelector selLedPower;
+    private ch.psi.pshell.swing.DiscretePositionerSelector selMirror;
     private ch.psi.pshell.swing.DeviceValuePanel valueScreen;
     // End of variables declaration//GEN-END:variables
 
