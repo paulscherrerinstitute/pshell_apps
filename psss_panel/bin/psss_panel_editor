@@ -28,5 +28,6 @@ done
 	-plgp=${PKG}/plugins \
 	-scpt=${PKG}/script \
 	-devp=${PKG}/devices \
+	-pool=${PKG}/config/devices.properties \
         -p=Correlation.java \
         $@ 

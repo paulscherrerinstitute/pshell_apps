@@ -8,7 +8,9 @@
      -outp=~/pshell/home \
      -scpt=~/pshell/home/script \
      -strh=~/pshell/home/stripchart \
+     -pipeline_server=sf-daqsync-01:8889 \
+     -camera_server=sf-daqsync-01:8888 \
      -py3 \
      -version=default \
-     $@
+     ${1+"$@"}
 

@@ -347,7 +347,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         layout.columnWidths = new int[]{0, 180};   //Minimum width
         layout.rowHeights = new int[]{30, 30, 30};   //Minimum height
         panel.setLayout(layout);
-        JComboBox comboLogbook = new JComboBox(new String[]{"SwissFEL commissioning data", "SwissFEL commissioning"});
+        JComboBox comboLogbook = new JComboBox(new String[]{"SLS", "SLS Development", "SLS Measurement Data"});
         JTextField textComment = new JTextField();
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
@@ -402,34 +402,6 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         }
     }
 
-    void setLaserState(int bunch, boolean value) throws Exception {
-        System.out.println("Setting laser state: " + value  + " - bunch" + bunch);
-        //Epics.putq("SIN-TIMAST-TMA:Beam-Las-Delay-Sel", value ? 0 : 1);
-        if ((bunch<=0) || (bunch==1)){
-            Epics.putq("SIN-TIMAST-TMA:Bunch-1-OnDelay-Sel", value ? 0 : 1);            
-        }
-        if ((bunch<=0) || (bunch==2)){
-            Epics.putq("SIN-TIMAST-TMA:Bunch-2-OnDelay-Sel", value ? 0 : 1);            
-        }
-        
-        Epics.putq("SIN-TIMAST-TMA:Beam-Apply-Cmd.PROC", 1);
-        Thread.sleep(3000);
-    }
-
-    boolean getLaserState(int bunch) throws Exception {
-        //return (Epics.get("SIN-TIMAST-TMA:Beam-Las-Delay-Sel", Integer.class) == 0);
-        try{
-            if (bunch<=0){
-                return getLaserState(1) && getLaserState(2);
-            }
-            if (bunch==2){
-                return (Epics.get("SWISSFEL-STATUS:Bunch-2-OnDelay-Sel", Integer.class) == 0);
-            }
-            return (Epics.get("SWISSFEL-STATUS:Bunch-1-OnDelay-Sel", Integer.class) == 0);
-        } catch (Exception ex){
-            return false;
-        }
-    }
     
 
     ////////

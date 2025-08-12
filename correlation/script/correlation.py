@@ -21,7 +21,7 @@ if get_exec_pars().source == CommandSource.ui:
     #dx = "SLG-LCAM-C042 x_rms"                  ; dxtype = TYPE_CAMERA   
     
     #dy = "SINDI01-RLLE-STA:SLAVE1-DLTIMER"      ; dytype = TYPE_CHANNEL    
-    dy = "SATES31-CAMS187-RIXS1_sp1 intensity"  ; dytype = TYPE_CAMERA
+    dy = "SATES31-CAMS187-RIXS1_sp intensity"  ; dytype = TYPE_CAMERA
     #dy=get_beam_ok_channel(2)                   ; dytype = TYPE_STREAM
     
     interval = 0.01
@@ -121,7 +121,7 @@ try:
         _stream.initialize()
         _stream.start(True)
     if _camname != None:
-        shared = _camname.endswith("_sp1")
+        shared = _camname.endswith("_sp")
         print "Camera: " , _camname, " shared: ", shared
         cam_server.start(_camname, shared )    
         

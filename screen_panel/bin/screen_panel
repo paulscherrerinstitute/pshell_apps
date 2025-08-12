@@ -1,12 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "ScreenPanel" 
 
 /sf/op/bin/pshell_op -l -d -k=false -q -b -e -g -n -buffer_size=10 -clog=SEVERE -size=1000x800 \
      -p=/opt/gfa/pshell/apps/screen_panel/ScreenPanel.java \
+     -_jvmarg="" \
+     -_devp=~/pshell/home/devices \
      -pipeline_server=sf-daqsync-01:8889 \
      -camera_server=sf-daqsync-01:8888 \
      -laf=dark \
+     -light \
      ${1+"$@"}
 
 

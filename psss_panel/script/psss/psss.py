@@ -1,7 +1,3 @@
-import org.jfree.ui.RectangleAnchor as RectangleAnchor
-import org.jfree.ui.TextAnchor as TextAnchor
-import ch.psi.pshell.imaging.Overlay as Overlay
-import ch.psi.pshell.plot.RangeSelectionPlot as RangeSelectionPlot
 from collections import deque
 
 PSSS_CAMERA_NAME = "SARFE10-PSSS059";
@@ -159,7 +155,7 @@ def enable_psss_image(enabled, renderer):
             cam_server.config.colormap=Colormap.Temperature
             
             
-            cam_server.start(PSSS_CAMERA_NAME + "_sp", PSSS_CAMERA_NAME + "_sp1")       
+            cam_server.start(PSSS_CAMERA_NAME + "_sp", True)       
             #ovmin, ovmax= Overlays.Crosshairs(renderer.getPenMarker(), Dimension(-1,1)), \
             #              Overlays.Crosshairs(renderer.getPenMarker(), Dimension(-1,1))
             ovmin, ovmax= Overlays.Line(renderer.getPenMarker()), Overlays.Line(renderer.getPenMarker())           
