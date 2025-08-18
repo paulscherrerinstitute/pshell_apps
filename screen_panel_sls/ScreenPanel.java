@@ -69,8 +69,9 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
     public ScreenPanel() {
         logger = Logger.getLogger(getClass().getName());
         initComponents();        
+        panelParameters.setVisible(false);
         panelScreen.setVisible(false);
-        panelControls.setVisible(false);
+        panelControls.setVisible(false);        
         camServerViewer.setListener(this);
         this.remove(customPanel);
         camServerViewer.getCustomPanel().add(customPanel);
@@ -228,6 +229,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         panelExposure.setEnabled(false);
         selMirror.setEnabled(false);
         if ((name==null)|| name.isBlank()){
+            panelParameters.setVisible(false);
             panelScreen.setVisible(false);
             panelControls.setVisible(false);        
         }        
@@ -251,25 +253,27 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         boolean cameraControls = linac || ltb || booster || btr || ring;
         boolean flipMirror = linac || ltb || booster;
 
+        panelParameters.setVisible(types!=null);
         panelScreen.setVisible(cameraControls);
         panelControls.setVisible(cameraControls);
-        if (cameraName!=null){            
-            if (cameraControls) {
-                //Parallelizing initialization
-                devicesInitTask = new Thread(() -> {
+        
+        if (cameraName!=null){                        
+            //Parallelizing initialization
+            devicesInitTask = new Thread(() -> {
                     
-                    try {
-                        exposure = new ChannelDouble("Exposure Time", cameraName + ":EXPOSURE");
-                        exposure.setMonitored(true);
-                        exposure.initialize();
+                try {
+                    exposure = new ChannelDouble("Exposure Time", cameraName + ":EXPOSURE");
+                    exposure.setMonitored(true);
+                    exposure.initialize();
 
-                    } catch (Exception ex) {
-                        System.err.println(ex.getMessage());
-                        exposure = null;
-                    }
-                    panelExposure.setEnabled(exposure != null);
-                    panelExposure.setDevice(exposure);
- 
+                } catch (Exception ex) {
+                    System.err.println(ex.getMessage());
+                    exposure = null;
+                }
+                panelExposure.setEnabled(exposure != null);
+                panelExposure.setDevice(exposure);
+
+                if (cameraControls) {
                     if (flipMirror){
                         try {
                             mirror = new BinaryPositioner("Flip Mirror", cameraName + ":FLIP-MIRROR");
@@ -285,8 +289,8 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                     }
                     selMirror.setEnabled(mirror != null);
                     selMirror.setDevice(mirror);
-                    
- 
+
+
                     try {
                         ledPower = new BinaryPositioner("Led Power", cameraName + ":LED-POWER");
                         ledPower.setMonitored(true);
@@ -298,7 +302,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                     }
                     selLedPower.setEnabled(ledPower != null);
                     selLedPower.setDevice(ledPower);         
-                    
+
                     try {
                         flStep = new ChannelDouble("Lens FL Step", cameraName + "-LENS:FL_STEP");
                         flStep.setMonitored(true);
@@ -312,7 +316,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                     buttonFLDown.setEnabled(flStep != null);
                     buttonFLUp.setEnabled(flStep != null);
                     panelFlStep.setDevice(flStep);                    
-                    
+
                     try{                                                
                         screen = new DiscretePositioner("CurrentScreen", cameraName + ":SET_SCREEN1_POS", cameraName + ":GET_SCREEN1_POS");
                         screen.setMonitored(true);
@@ -332,11 +336,10 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                     comboScreen.setEnabled(screen != null);
                     valueScreen.setEnabled(screen != null);
                     valueScreen.setDevice(screen);
+                }
 
-                    
-                });
-                devicesInitTask.start();
-            }
+            });
+            devicesInitTask.start();
         }
         updateDialogTitle();
     }    
@@ -419,8 +422,6 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         valueScreen = new ch.psi.pshell.swing.DeviceValuePanel();
         comboScreen = new javax.swing.JComboBox();
         panelControls = new javax.swing.JPanel();
-        panelExposure = new ch.psi.pshell.swing.RegisterPanel();
-        jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         selMirror = new ch.psi.pshell.swing.DiscretePositionerSelector();
         jLabel3 = new javax.swing.JLabel();
@@ -429,6 +430,9 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         panelFlStep = new ch.psi.pshell.swing.RegisterPanel();
         buttonFLDown = new javax.swing.JButton();
         buttonFLUp = new javax.swing.JButton();
+        panelParameters = new javax.swing.JPanel();
+        panelExposure = new ch.psi.pshell.swing.RegisterPanel();
+        jLabel1 = new javax.swing.JLabel();
         camServerViewer = new ch.psi.pshell.ui.CamServerViewer();
 
         setPreferredSize(new java.awt.Dimension(873, 600));
@@ -464,10 +468,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                 .addContainerGap())
         );
 
-        panelControls.setBorder(javax.swing.BorderFactory.createTitledBorder("Camera Control"));
-
-        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        jLabel1.setText("Exposure:");
+        panelControls.setBorder(javax.swing.BorderFactory.createTitledBorder("Device Control"));
 
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         jLabel2.setText("Flip Mirror:");
@@ -501,11 +502,9 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                 .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(panelExposure, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addComponent(selMirror, javax.swing.GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
                     .addComponent(selLedPower, javax.swing.GroupLayout.DEFAULT_SIZE, 0, Short.MAX_VALUE)
                     .addGroup(panelControlsLayout.createSequentialGroup()
@@ -516,16 +515,10 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                         .addComponent(buttonFLUp)))
                 .addContainerGap())
         );
-
-        panelControlsLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel1, jLabel2});
-
         panelControlsLayout.setVerticalGroup(
             panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelControlsLayout.createSequentialGroup()
-                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(panelExposure, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(0, 0, 0)
                 .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel2)
                     .addComponent(selMirror, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -543,21 +536,49 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        panelParameters.setBorder(javax.swing.BorderFactory.createTitledBorder("Camera Parameters"));
+
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel1.setText("Exposure:");
+
+        javax.swing.GroupLayout panelParametersLayout = new javax.swing.GroupLayout(panelParameters);
+        panelParameters.setLayout(panelParametersLayout);
+        panelParametersLayout.setHorizontalGroup(
+            panelParametersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelParametersLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelExposure, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        panelParametersLayout.setVerticalGroup(
+            panelParametersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelParametersLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panelParametersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(panelExposure, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout customPanelLayout = new javax.swing.GroupLayout(customPanel);
         customPanel.setLayout(customPanelLayout);
         customPanelLayout.setHorizontalGroup(
             customPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(panelScreen, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(panelControls, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(panelParameters, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         customPanelLayout.setVerticalGroup(
             customPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(customPanelLayout.createSequentialGroup()
+                .addComponent(panelParameters, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addComponent(panelScreen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(panelControls, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(342, Short.MAX_VALUE))
+                .addContainerGap(336, Short.MAX_VALUE))
         );
 
         add(customPanel, java.awt.BorderLayout.WEST);
@@ -633,6 +654,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
     private javax.swing.JPanel panelControls;
     private ch.psi.pshell.swing.RegisterPanel panelExposure;
     private ch.psi.pshell.swing.RegisterPanel panelFlStep;
+    private javax.swing.JPanel panelParameters;
     private javax.swing.JPanel panelScreen;
     private ch.psi.pshell.swing.DiscretePositionerSelector selLedPower;
     private ch.psi.pshell.swing.DiscretePositionerSelector selMirror;
