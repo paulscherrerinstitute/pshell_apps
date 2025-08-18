@@ -664,7 +664,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         try {
             String cameraName = camServerViewer.getCameraName();
             String chStatus = cameraName+":CAMERASTATUS";
-            int status = Epics.get(chStatus, Integer.TYPE);
+            int status = Epics.get(chStatus, Integer.class);
             if (status==2){
                 Epics.put(chStatus, 1);
                 Epics.putq(chStatus, 2);
