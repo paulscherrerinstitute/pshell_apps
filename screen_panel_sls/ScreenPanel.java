@@ -665,11 +665,11 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                         int status = Epics.get(chStatus, Integer.class);
                         if (status==2){
                             Epics.put(chStatus, 1);
-                            Epics.putq(chStatus, 2);
+                            Epics.put(chStatus, 2);
                         }
                     } catch (Exception ex) {
                         showException(ex);
-                    }   finally{
+                    } finally{
                         if (cameraName.equals(camServerViewer.getCameraName())){
                             buttonApplyExposure.setEnabled(true);
                         }
