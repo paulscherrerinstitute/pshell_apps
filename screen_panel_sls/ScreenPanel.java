@@ -248,98 +248,102 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         boolean ltb = (types!=null) && types.contains(LTB_TYPE);
         boolean linac = (types!=null) && types.contains(LINAC_TYPE);
         boolean rf = (types!=null) && types.contains(RF_TYPE);
-        boolean ring = (types!=null) && types.contains(RING_TYPE);
+        boolean ring = (types!=null) && types.contains(RING_TYPE);        
+        
         
         boolean cameraControls = linac || ltb || booster || btr || ring;
         boolean flipMirror = linac || ltb || booster;
+        boolean cameraParameters = cameraControls || frontend || rf;
 
-        panelParameters.setVisible(types!=null);
+        panelParameters.setVisible(cameraParameters);
         panelScreen.setVisible(cameraControls);
         panelControls.setVisible(cameraControls);
         
-        if (cameraName!=null){                        
-            //Parallelizing initialization
-            devicesInitTask = new Thread(() -> {
-                    
-                try {
-                    exposure = new ChannelDouble("Exposure Time", cameraName + ":EXPOSURE");
-                    exposure.setMonitored(true);
-                    exposure.initialize();
-
-                } catch (Exception ex) {
-                    System.err.println(ex.getMessage());
-                    exposure = null;
-                }
-                panelExposure.setEnabled(exposure != null);
-                panelExposure.setDevice(exposure);
-
-                if (cameraControls) {
-                    if (flipMirror){
+        if (cameraName!=null){   
+            if (cameraParameters || cameraControls) {
+                //Parallelizing initialization
+                devicesInitTask = new Thread(() -> {
+                    if (cameraParameters){
                         try {
-                            mirror = new BinaryPositioner("Flip Mirror", cameraName + ":FLIP-MIRROR");
-                            mirror.setMonitored(true);
-                            mirror.initialize();
+                            exposure = new ChannelDouble("Exposure Time", cameraName + ":EXPOSURE");
+                            exposure.setMonitored(true);
+                            exposure.initialize();
 
                         } catch (Exception ex) {
                             System.err.println(ex.getMessage());
+                            exposure = null;
+                        }
+                        panelExposure.setEnabled(exposure != null);
+                        panelExposure.setDevice(exposure);
+                    }
+
+                    if (cameraControls) {
+                        if (flipMirror){
+                            try {
+                                mirror = new BinaryPositioner("Flip Mirror", cameraName + ":FLIP-MIRROR");
+                                mirror.setMonitored(true);
+                                mirror.initialize();
+
+                            } catch (Exception ex) {
+                                System.err.println(ex.getMessage());
+                                mirror = null;
+                            }
+                        } else {
                             mirror = null;
                         }
-                    } else {
-                        mirror = null;
-                    }
-                    selMirror.setEnabled(mirror != null);
-                    selMirror.setDevice(mirror);
+                        selMirror.setEnabled(mirror != null);
+                        selMirror.setDevice(mirror);
 
 
-                    try {
-                        ledPower = new BinaryPositioner("Led Power", cameraName + ":LED-POWER");
-                        ledPower.setMonitored(true);
-                        ledPower.initialize();
+                        try {
+                            ledPower = new BinaryPositioner("Led Power", cameraName + ":LED-POWER");
+                            ledPower.setMonitored(true);
+                            ledPower.initialize();
 
-                    } catch (Exception ex) {
-                        System.err.println(ex.getMessage());
-                        ledPower = null;
-                    }
-                    selLedPower.setEnabled(ledPower != null);
-                    selLedPower.setDevice(ledPower);         
-
-                    try {
-                        flStep = new ChannelDouble("Lens FL Step", cameraName + "-LENS:FL_STEP");
-                        flStep.setMonitored(true);
-                        flStep.initialize();
-
-                    } catch (Exception ex) {
-                        System.err.println(ex.getMessage());
-                        flStep = null;
-                    }
-                    panelFlStep.setEnabled(flStep != null);
-                    buttonFLDown.setEnabled(flStep != null);
-                    buttonFLUp.setEnabled(flStep != null);
-                    panelFlStep.setDevice(flStep);                    
-
-                    try{                                                
-                        screen = new DiscretePositioner("CurrentScreen", cameraName + ":SET_SCREEN1_POS", cameraName + ":GET_SCREEN1_POS");
-                        screen.setMonitored(true);
-                        screen.initialize();
-                        DefaultComboBoxModel model = new DefaultComboBoxModel();
-                        for (String pos : screen.getPositions()) {
-                            model.addElement(pos);
+                        } catch (Exception ex) {
+                            System.err.println(ex.getMessage());
+                            ledPower = null;
                         }
-                        comboScreen.setModel(model);
-                        comboScreen.setSelectedItem(screen.read());
+                        selLedPower.setEnabled(ledPower != null);
+                        selLedPower.setDevice(ledPower);         
 
-                    } catch (Exception ex) {
-                        comboScreen.setModel(new DefaultComboBoxModel());
-                        System.err.println(ex.getMessage());
-                        screen = null;
+                        try {
+                            flStep = new ChannelDouble("Lens FL Step", cameraName + "-LENS:FL_STEP");
+                            flStep.setMonitored(true);
+                            flStep.initialize();
+
+                        } catch (Exception ex) {
+                            System.err.println(ex.getMessage());
+                            flStep = null;
+                        }
+                        panelFlStep.setEnabled(flStep != null);
+                        buttonFLDown.setEnabled(flStep != null);
+                        buttonFLUp.setEnabled(flStep != null);
+                        panelFlStep.setDevice(flStep);                    
+
+                        try{                                                
+                            screen = new DiscretePositioner("CurrentScreen", cameraName + ":SET_SCREEN1_POS", cameraName + ":GET_SCREEN1_POS");
+                            screen.setMonitored(true);
+                            screen.initialize();
+                            DefaultComboBoxModel model = new DefaultComboBoxModel();
+                            for (String pos : screen.getPositions()) {
+                                model.addElement(pos);
+                            }
+                            comboScreen.setModel(model);
+                            comboScreen.setSelectedItem(screen.read());
+
+                        } catch (Exception ex) {
+                            comboScreen.setModel(new DefaultComboBoxModel());
+                            System.err.println(ex.getMessage());
+                            screen = null;
+                        }
+                        comboScreen.setEnabled(screen != null);
+                        valueScreen.setEnabled(screen != null);
+                        valueScreen.setDevice(screen);
                     }
-                    comboScreen.setEnabled(screen != null);
-                    valueScreen.setEnabled(screen != null);
-                    valueScreen.setDevice(screen);
-                }
-
-            });
-            devicesInitTask.start();
+                });
+                devicesInitTask.start();
+            }
         }
         updateDialogTitle();
     }    
