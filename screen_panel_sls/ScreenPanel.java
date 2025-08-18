@@ -657,11 +657,24 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
     private void buttonApplyExposureActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonApplyExposureActionPerformed
         try {
             String cameraName = camServerViewer.getCameraName();
-            String chStatus = cameraName+":CAMERASTATUS";
-            int status = Epics.get(chStatus, Integer.class);
-            if (status==2){
-                Epics.put(chStatus, 1);
-                Epics.putq(chStatus, 2);
+            if (cameraName!=null){
+                String chStatus = cameraName+":CAMERASTATUS";
+                buttonApplyExposure.setEnabled(false);
+                SwingUtilities.invokeLater(()->{
+                    try {
+                        int status = Epics.get(chStatus, Integer.class);
+                        if (status==2){
+                            Epics.put(chStatus, 1);
+                            Epics.putq(chStatus, 2);
+                        }
+                    } catch (Exception ex) {
+                        showException(ex);
+                    }   finally{
+                        if (cameraName.equals(camServerViewer.getCameraName())){
+                            buttonApplyExposure.setEnabled(true);
+                        }
+                    }        
+                });
             }
         } catch (Exception ex) {
             showException(ex);
