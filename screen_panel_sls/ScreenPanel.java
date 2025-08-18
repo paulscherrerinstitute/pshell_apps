@@ -550,6 +550,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         jLabel1.setText("Exposure:");
 
         buttonApplyExposure.setText("✓");
+        buttonApplyExposure.setToolTipText("Set camera status to 'Idle' and then to 'Running'");
         buttonApplyExposure.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonApplyExposureActionPerformed(evt);
@@ -662,11 +663,11 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                 buttonApplyExposure.setEnabled(false);
                 SwingUtilities.invokeLater(()->{
                     try {
-                        int status = Epics.get(chStatus, Integer.class);
-                        if (status==2){
+                        //int status = Epics.get(chStatus, Integer.class);
+                        //if (status==2){
                             Epics.put(chStatus, 1);
                             Epics.put(chStatus, 2);
-                        }
+                        //}
                     } catch (Exception ex) {
                         showException(ex);
                     } finally{

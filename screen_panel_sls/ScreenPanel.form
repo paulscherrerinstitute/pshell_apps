@@ -264,6 +264,7 @@
             <Component class="javax.swing.JButton" name="buttonApplyExposure">
               <Properties>
                 <Property name="text" type="java.lang.String" value="&#x2713;"/>
+                <Property name="toolTipText" type="java.lang.String" value="Set camera status to &apos;Idle&apos; and then to &apos;Running&apos;"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonApplyExposureActionPerformed"/>
