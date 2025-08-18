@@ -2,6 +2,7 @@ import ch.psi.pshell.bs.StreamCamera;
 import ch.psi.pshell.camserver.PipelineSource;
 import ch.psi.pshell.data.DataManager;
 import ch.psi.pshell.device.Device;
+import ch.psi.pshell.device.DeviceListener;
 import ch.psi.pshell.epics.ChannelInteger;
 import ch.psi.pshell.epics.DiscretePositioner;
 import ch.psi.pshell.epics.BinaryPositioner;
@@ -76,6 +77,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         this.remove(customPanel);
         camServerViewer.getCustomPanel().add(customPanel);
         camServerViewer.setSidePanelVisible(true);
+        //buttonApplyExposure.setText("");
         
         camServerViewer.setPersistenceFile(Paths.get(getContext().getSetup().getContextPath(), "ScreenPanel.bin"));
 
@@ -227,12 +229,13 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         buttonFLUp.setEnabled(false);  
         selLedPower.setEnabled(false);
         panelExposure.setEnabled(false);
+        buttonApplyExposure.setEnabled(false);
         selMirror.setEnabled(false);
         if ((name==null)|| name.isBlank()){
             panelParameters.setVisible(false);
             panelScreen.setVisible(false);
             panelControls.setVisible(false);        
-        }        
+        }                
 	updateDialogTitle();
     }    
     
@@ -275,6 +278,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                         }
                         panelExposure.setEnabled(exposure != null);
                         panelExposure.setDevice(exposure);
+                        buttonApplyExposure.setEnabled(panelExposure.isEnabled());                        
                     }
 
                     if (cameraControls) {
@@ -437,6 +441,7 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         panelParameters = new javax.swing.JPanel();
         panelExposure = new ch.psi.pshell.swing.RegisterPanel();
         jLabel1 = new javax.swing.JLabel();
+        buttonApplyExposure = new javax.swing.JButton();
         camServerViewer = new ch.psi.pshell.ui.CamServerViewer();
 
         setPreferredSize(new java.awt.Dimension(873, 600));
@@ -522,20 +527,26 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         panelControlsLayout.setVerticalGroup(
             panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(panelControlsLayout.createSequentialGroup()
-                .addGap(4, 4, 4)
-                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(jLabel2)
-                    .addComponent(selMirror, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(jLabel3)
-                    .addComponent(selLedPower, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-                    .addComponent(jLabel4)
-                    .addComponent(buttonFLDown)
-                    .addComponent(panelFlStep, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(buttonFLUp))
+                .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(panelControlsLayout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                            .addComponent(jLabel2)
+                            .addComponent(selMirror, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                            .addComponent(jLabel3)
+                            .addComponent(selLedPower, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(panelControlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                            .addComponent(jLabel4)
+                            .addComponent(panelFlStep, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(panelControlsLayout.createSequentialGroup()
+                        .addGap(62, 62, 62)
+                        .addComponent(buttonFLDown))
+                    .addGroup(panelControlsLayout.createSequentialGroup()
+                        .addGap(62, 62, 62)
+                        .addComponent(buttonFLUp)))
                 .addContainerGap())
         );
 
@@ -543,6 +554,13 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         jLabel1.setText("Exposure:");
+
+        buttonApplyExposure.setText("✓");
+        buttonApplyExposure.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonApplyExposureActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout panelParametersLayout = new javax.swing.GroupLayout(panelParameters);
         panelParameters.setLayout(panelParametersLayout);
@@ -553,6 +571,8 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panelExposure, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(buttonApplyExposure)
                 .addContainerGap())
         );
         panelParametersLayout.setVerticalGroup(
@@ -561,7 +581,8 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
                 .addGap(4, 4, 4)
                 .addGroup(panelParametersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(jLabel1)
-                    .addComponent(panelExposure, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(panelExposure, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonApplyExposure))
                 .addContainerGap())
         );
 
@@ -639,7 +660,22 @@ public class ScreenPanel extends Panel implements CamServerViewer.CamServerViewe
         }
     }//GEN-LAST:event_buttonFLUpActionPerformed
 
+    private void buttonApplyExposureActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonApplyExposureActionPerformed
+        try {
+            String cameraName = camServerViewer.getCameraName();
+            String chStatus = cameraName+":CAMERASTATUS";
+            int status = Epics.get(chStatus, Integer.TYPE);
+            if (status==2){
+                Epics.put(chStatus, 1);
+                Epics.putq(chStatus, 2);
+            }
+        } catch (Exception ex) {
+            showException(ex);
+        }            
+    }//GEN-LAST:event_buttonApplyExposureActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonApplyExposure;
     private javax.swing.JButton buttonFLDown;
     private javax.swing.JButton buttonFLUp;
     private javax.swing.ButtonGroup buttonGroup1;
